@@ -5,3 +5,5 @@ At the root directory:
 - run npm install
 - run npm run dev
 - open at localhost:5173
+
+Full code written in App.jsx
