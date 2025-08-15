@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import './App.css'
 
 function App() {
@@ -18,10 +18,11 @@ function App() {
     }
   ]
   const [highlightedArticles, setHighlightedArticles] = useState(articles);
+
   const matchWords = (article, word) => {
-    // matches all whole-case insestive words.
+    // matches all whole-case insenstive words.
     const regex = new RegExp(`\\b${word}\\b`, 'gi')
-    // list of words
+    // list of words (always returns one index which is the matched)
     const matchedWords = article.match(regex);
     return matchedWords;
   }
@@ -29,16 +30,25 @@ function App() {
   const checkMatches = (value) => {
     setSearchInput(value);
     let newArticles = [];
+    // traverse all articles to check for matches inside each one
     articles.forEach(article => {
-      const matchedWords = matchWords(article.content, value)
-      if (matchedWords && value.length > 0) {
-        article.title = article.title.replaceAll(matchedWords[0], `<mark>${matchedWords[0]}</mark>`);
-        article.content = article.content.replaceAll(matchedWords[0], `<mark>${matchedWords[0]}</mark>`);
-        newArticles.push(article);
-      } else if (value.length === 0) {
-        newArticles = articles;
+      // get matched words for title and content separatley
+      const matchedTitleWords = matchWords(article.title, value)
+      const matchedContentWords = matchWords(article.content, value)
+      if (matchedTitleWords && value.length > 0) {
+        // put all matched words inside mark tags to highlight
+        article.title = article.title.replaceAll(matchedTitleWords[0], `<mark>${matchedTitleWords[0]}</mark>`);
       }
+      if (matchedContentWords && value.length > 0) {
+        article.content = article.content.replaceAll(matchedContentWords[0], `<mark>${matchedContentWords[0]}</mark>`);
+      }
+      // display the articles after highlighting
+      newArticles.push(article);
     })
+    // make sure to display all articles again if no search input
+    if (value.length === 0) {
+      newArticles = articles;
+    }
     setHighlightedArticles(newArticles);
   }
 
@@ -52,12 +62,11 @@ function App() {
         className='search-input'
       />
         {highlightedArticles.map(({title, content}, index) => (
-          <article>
+          <article key={title}>
             <h3 className='title' dangerouslySetInnerHTML={{__html: title}}/>
-            <p className='content' key={index} dangerouslySetInnerHTML={{__html: content}}/>
+            <p className='content' dangerouslySetInnerHTML={{__html: content}}/>
           </article>
         ))}
-        {highlightedArticles.length === 0 && <h2 style={{textAlign: 'center'}}>No matches found</h2>}
     </div>
   )
 }
